@@ -2,7 +2,7 @@
     <div class="app-container">
         <el-row :gutter="20">
             <!--部门数据-->
-            <!-- <el-col :span="4" :xs="24">
+            <el-col :span="4" :xs="24">
                 <div class="head-container">
                     <el-input
                         v-model="deptName"
@@ -19,14 +19,15 @@
                         :expand-on-click-node="false"
                         :filter-node-method="filterNode"
                         ref="deptTreeRef"
+                        node-key="id"
                         highlight-current
                         default-expand-all
                         @node-click="handleNodeClick"
                     />
                 </div>
-            </el-col> -->
+            </el-col>
             <!--用户数据-->
-            <el-col>
+            <el-col :span="20" :xs="24">
                 <el-form
                     :model="queryParams"
                     ref="queryRef"
@@ -238,7 +239,8 @@
                                 v-if="scope.row.userId !== 1"
                             >
                                 <el-button
-                                    type="text"
+                                    link
+                                    type="primary"
                                     icon="Edit"
                                     @click="handleUpdate(scope.row)"
                                     v-hasPermi="['system:user:edit']"
@@ -250,7 +252,8 @@
                                 v-if="scope.row.userId !== 1"
                             >
                                 <el-button
-                                    type="text"
+                                    link
+                                    type="primary"
                                     icon="Delete"
                                     @click="handleDelete(scope.row)"
                                     v-hasPermi="['system:user:remove']"
@@ -262,7 +265,8 @@
                                 v-if="scope.row.userId !== 1"
                             >
                                 <el-button
-                                    type="text"
+                                    link
+                                    type="primary"
                                     icon="Key"
                                     @click="handleResetPwd(scope.row)"
                                     v-hasPermi="['system:user:resetPwd']"
@@ -274,7 +278,8 @@
                                 v-if="scope.row.userId !== 1"
                             >
                                 <el-button
-                                    type="text"
+                                    link
+                                    type="primary"
                                     icon="CircleCheck"
                                     @click="handleAuthRole(scope.row)"
                                     v-hasPermi="['system:user:edit']"
@@ -667,6 +672,8 @@ function handleQuery() {
 function resetQuery() {
     dateRange.value = [];
     proxy.resetForm("queryRef");
+    queryParams.value.deptId = undefined;
+    proxy.$refs.tree.setCurrentKey(null);
     handleQuery();
 }
 /** 删除按钮操作 */

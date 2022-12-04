@@ -2,18 +2,25 @@
     <div class="app-container">
         <el-form
             :model="queryParams"
-            ref="queryForm"
-            size="small"
+            ref="queryRef"
             :inline="true"
             v-show="showSearch"
-            label-width="68px"
+            label-width="98px"
         >
+            <el-form-item label="用户id" prop="userId">
+                <el-input
+                    v-model="queryParams.userId"
+                    placeholder="请输入用户id"
+                    clearable
+                    @keyup.enter="handleQuery"
+                />
+            </el-form-item>
             <el-form-item label="用户openid" prop="openId">
                 <el-input
                     v-model="queryParams.openId"
                     placeholder="请输入用户openid"
                     clearable
-                    @keyup.enter.native="handleQuery"
+                    @keyup.enter="handleQuery"
                 />
             </el-form-item>
             <el-form-item label="用户昵称" prop="nickName">
@@ -21,7 +28,7 @@
                     v-model="queryParams.nickName"
                     placeholder="请输入用户昵称"
                     clearable
-                    @keyup.enter.native="handleQuery"
+                    @keyup.enter="handleQuery"
                 />
             </el-form-item>
             <el-form-item label="手机号码" prop="phonenumber">
@@ -29,7 +36,7 @@
                     v-model="queryParams.phonenumber"
                     placeholder="请输入手机号码"
                     clearable
-                    @keyup.enter.native="handleQuery"
+                    @keyup.enter="handleQuery"
                 />
             </el-form-item>
             <el-form-item label="用户头像" prop="avatar">
@@ -37,37 +44,38 @@
                     v-model="queryParams.avatar"
                     placeholder="请输入用户头像"
                     clearable
-                    @keyup.enter.native="handleQuery"
+                    @keyup.enter="handleQuery"
                 />
             </el-form-item>
-            <!-- <el-form-item label="是否更新过用户信息" prop="isInit">
+            <el-form-item label="是否更新过用户信息" prop="isInit">
                 <el-select
                     v-model="queryParams.isInit"
                     placeholder="请选择是否更新过用户信息"
                     clearable
                 >
                     <el-option
-                        v-for="dict in dict.type.wx_user_init"
+                        v-for="dict in wx_user_init"
                         :key="dict.value"
                         :label="dict.label"
                         :value="dict.value"
                     />
                 </el-select>
-            </el-form-item> -->
+            </el-form-item>
+            <el-form-item label="创建时间" prop="createTime">
+                <el-date-picker
+                    clearable
+                    v-model="queryParams.createTime"
+                    type="date"
+                    value-format="YYYY-MM-DD"
+                    placeholder="请选择创建时间"
+                >
+                </el-date-picker>
+            </el-form-item>
             <el-form-item>
-                <el-button
-                    type="primary"
-                    icon="el-icon-search"
-                    size="mini"
-                    @click="handleQuery"
+                <el-button type="primary" icon="Search" @click="handleQuery"
                     >搜索</el-button
                 >
-                <el-button
-                    icon="el-icon-refresh"
-                    size="mini"
-                    @click="resetQuery"
-                    >重置</el-button
-                >
+                <el-button icon="Refresh" @click="resetQuery">重置</el-button>
             </el-form-item>
         </el-form>
 
@@ -76,8 +84,7 @@
                 <el-button
                     type="primary"
                     plain
-                    icon="el-icon-plus"
-                    size="mini"
+                    icon="Plus"
                     @click="handleAdd"
                     v-hasPermi="['wx:wxuser:add']"
                     >新增</el-button
@@ -87,8 +94,7 @@
                 <el-button
                     type="success"
                     plain
-                    icon="el-icon-edit"
-                    size="mini"
+                    icon="Edit"
                     :disabled="single"
                     @click="handleUpdate"
                     v-hasPermi="['wx:wxuser:edit']"
@@ -99,8 +105,7 @@
                 <el-button
                     type="danger"
                     plain
-                    icon="el-icon-delete"
-                    size="mini"
+                    icon="Delete"
                     :disabled="multiple"
                     @click="handleDelete"
                     v-hasPermi="['wx:wxuser:remove']"
@@ -111,15 +116,14 @@
                 <el-button
                     type="warning"
                     plain
-                    icon="el-icon-download"
-                    size="mini"
+                    icon="Download"
                     @click="handleExport"
                     v-hasPermi="['wx:wxuser:export']"
                     >导出</el-button
                 >
             </el-col>
             <right-toolbar
-                :showSearch.sync="showSearch"
+                v-model:showSearch="showSearch"
                 @queryTable="getList"
             ></right-toolbar>
         </el-row>
@@ -149,31 +153,30 @@
                 align="center"
                 prop="isInit"
             >
-                <template slot-scope="scope">
+                <template #default="scope">
                     <dict-tag
-                        :options="dict.type.wx_user_init"
+                        :options="wx_user_init"
                         :value="scope.row.isInit"
                     />
                 </template>
             </el-table-column>
+            <el-table-column label="用户类型" align="center" prop="userType" />
             <el-table-column
                 label="操作"
                 align="center"
                 class-name="small-padding fixed-width"
             >
-                <template slot-scope="scope">
+                <template #default="scope">
                     <el-button
-                        size="mini"
                         type="text"
-                        icon="el-icon-edit"
+                        icon="Edit"
                         @click="handleUpdate(scope.row)"
                         v-hasPermi="['wx:wxuser:edit']"
                         >修改</el-button
                     >
                     <el-button
-                        size="mini"
                         type="text"
-                        icon="el-icon-delete"
+                        icon="Delete"
                         @click="handleDelete(scope.row)"
                         v-hasPermi="['wx:wxuser:remove']"
                         >删除</el-button
@@ -185,40 +188,73 @@
         <pagination
             v-show="total > 0"
             :total="total"
-            :page.sync="queryParams.pageNum"
-            :limit.sync="queryParams.pageSize"
+            v-model:page="queryParams.pageNum"
+            v-model:limit="queryParams.pageSize"
             @pagination="getList"
         />
 
         <!-- 添加或修改wx 端用户信息对话框 -->
-        <el-dialog
-            :title="title"
-            :visible.sync="open"
-            width="500px"
-            append-to-body
-        >
-            <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-dialog :title="title" v-model="open" width="500px" append-to-body>
+            <el-form
+                ref="wxuserRef"
+                :model="form"
+                :rules="rules"
+                label-width="100px"
+            >
+                <el-form-item label="用户openid" prop="openId">
+                    <el-input
+                        v-model="form.openId"
+                        placeholder="请输入用户openid"
+                    />
+                </el-form-item>
                 <el-form-item label="用户昵称" prop="nickName">
                     <el-input
                         v-model="form.nickName"
                         placeholder="请输入用户昵称"
                     />
                 </el-form-item>
+                <el-form-item label="手机号码" prop="phonenumber">
+                    <el-input
+                        v-model="form.phonenumber"
+                        placeholder="请输入手机号码"
+                    />
+                </el-form-item>
+                <el-form-item label="用户头像" prop="avatar">
+                    <el-input
+                        v-model="form.avatar"
+                        placeholder="请输入用户头像"
+                    />
+                </el-form-item>
+                <el-form-item label="是否更新过用户信息" prop="isInit">
+                    <el-select
+                        v-model="form.isInit"
+                        placeholder="请选择是否更新过用户信息"
+                    >
+                        <el-option
+                            v-for="dict in wx_user_init"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                        ></el-option>
+                    </el-select>
+                </el-form-item>
             </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button
-                    :loading="buttonLoading"
-                    type="primary"
-                    @click="submitForm"
-                    >确 定</el-button
-                >
-                <el-button @click="cancel">取 消</el-button>
-            </div>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button
+                        :loading="buttonLoading"
+                        type="primary"
+                        @click="submitForm"
+                        >确 定</el-button
+                    >
+                    <el-button @click="cancel">取 消</el-button>
+                </div>
+            </template>
         </el-dialog>
     </div>
 </template>
 
-<script>
+<script setup name="Wxuser">
 import {
     listWxuser,
     getWxuser,
@@ -227,218 +263,189 @@ import {
     updateWxuser,
 } from "@/api/wx/wxuser";
 
-export default {
-    name: "Wxuser",
-    dicts: ["wx_user_init"],
-    data() {
-        return {
-            // 按钮loading
-            buttonLoading: false,
-            // 遮罩层
-            loading: true,
-            // 选中数组
-            ids: [],
-            // 非单个禁用
-            single: true,
-            // 非多个禁用
-            multiple: true,
-            // 显示搜索条件
-            showSearch: true,
-            // 总条数
-            total: 0,
-            // wx 端用户信息表格数据
-            wxuserList: [],
-            // 弹出层标题
-            title: "",
-            // 是否显示弹出层
-            open: false,
-            // 查询参数
-            queryParams: {
-                pageNum: 1,
-                pageSize: 10,
-                openId: undefined,
-                nickName: undefined,
-                phonenumber: undefined,
-                avatar: undefined,
-                isInit: undefined,
+const { proxy } = getCurrentInstance();
+const { wx_user_init } = proxy.useDict("wx_user_init");
+
+const wxuserList = ref([]);
+const open = ref(false);
+const buttonLoading = ref(false);
+const loading = ref(true);
+const showSearch = ref(true);
+const ids = ref([]);
+const single = ref(true);
+const multiple = ref(true);
+const total = ref(0);
+const title = ref("");
+
+const data = reactive({
+    form: {},
+    queryParams: {
+        pageNum: 1,
+        pageSize: 10,
+        userId: undefined,
+        openId: undefined,
+        nickName: undefined,
+        phonenumber: undefined,
+        avatar: undefined,
+        isInit: undefined,
+        createTime: undefined,
+        userType: undefined,
+    },
+    rules: {
+        userId: [
+            { required: true, message: "用户id不能为空", trigger: "blur" },
+        ],
+        openId: [
+            { required: true, message: "用户openid不能为空", trigger: "blur" },
+        ],
+        isInit: [
+            {
+                required: true,
+                message: "是否更新过用户信息不能为空",
+                trigger: "change",
             },
-            // 表单参数
-            form: {},
-            // 表单校验
-            rules: {
-                userId: [
-                    {
-                        required: true,
-                        message: "用户id不能为空",
-                        trigger: "blur",
-                    },
-                ],
-                openId: [
-                    {
-                        required: true,
-                        message: "用户openid不能为空",
-                        trigger: "blur",
-                    },
-                ],
-                nickName: [
-                    {
-                        required: true,
-                        message: "用户昵称不能为空",
-                        trigger: "blur",
-                    },
-                ],
-                phonenumber: [
-                    {
-                        required: true,
-                        message: "手机号码不能为空",
-                        trigger: "blur",
-                    },
-                ],
-                avatar: [
-                    {
-                        required: true,
-                        message: "用户头像不能为空",
-                        trigger: "blur",
-                    },
-                ],
-                isInit: [
-                    {
-                        required: true,
-                        message: "是否更新过用户信息不能为空",
-                        trigger: "change",
-                    },
-                ],
-            },
-        };
+        ],
+        userType: [
+            { required: true, message: "用户类型不能为空", trigger: "change" },
+        ],
     },
-    created() {
-        this.getList();
-    },
-    methods: {
-        /** 查询wx 端用户信息列表 */
-        getList() {
-            this.loading = true;
-            listWxuser(this.queryParams).then((response) => {
-                this.wxuserList = response.rows;
-                this.total = response.total;
-                this.loading = false;
-            });
+});
+
+const { queryParams, form, rules } = toRefs(data);
+
+/** 查询wx 端用户信息列表 */
+function getList() {
+    loading.value = true;
+    listWxuser(queryParams.value).then((response) => {
+        wxuserList.value = response.rows;
+        total.value = response.total;
+        loading.value = false;
+    });
+}
+
+// 取消按钮
+function cancel() {
+    open.value = false;
+    reset();
+}
+
+// 表单重置
+function reset() {
+    form.value = {
+        userId: null,
+        openId: null,
+        nickName: null,
+        phonenumber: null,
+        avatar: null,
+        isInit: null,
+        createBy: null,
+        createTime: null,
+        updateBy: null,
+        updateTime: null,
+        userType: null,
+    };
+    proxy.resetForm("wxuserRef");
+}
+
+/** 搜索按钮操作 */
+function handleQuery() {
+    queryParams.value.pageNum = 1;
+    getList();
+}
+
+/** 重置按钮操作 */
+function resetQuery() {
+    proxy.resetForm("queryRef");
+    handleQuery();
+}
+
+// 多选框选中数据
+function handleSelectionChange(selection) {
+    ids.value = selection.map((item) => item.userId);
+    single.value = selection.length != 1;
+    multiple.value = !selection.length;
+}
+
+/** 新增按钮操作 */
+function handleAdd() {
+    reset();
+    open.value = true;
+    title.value = "添加wx 端用户信息";
+}
+
+/** 修改按钮操作 */
+function handleUpdate(row) {
+    loading.value = true;
+    reset();
+    const _userId = row.userId || ids.value;
+    getWxuser(_userId).then((response) => {
+        loading.value = false;
+        form.value = response.data;
+        open.value = true;
+        title.value = "修改wx 端用户信息";
+    });
+}
+
+/** 提交按钮 */
+function submitForm() {
+    proxy.$refs["wxuserRef"].validate((valid) => {
+        if (valid) {
+            buttonLoading.value = true;
+            if (form.value.userId != null) {
+                updateWxuser(form.value)
+                    .then((response) => {
+                        proxy.$modal.msgSuccess("修改成功");
+                        open.value = false;
+                        getList();
+                    })
+                    .finally(() => {
+                        buttonLoading.value = false;
+                    });
+            } else {
+                addWxuser(form.value)
+                    .then((response) => {
+                        proxy.$modal.msgSuccess("新增成功");
+                        open.value = false;
+                        getList();
+                    })
+                    .finally(() => {
+                        buttonLoading.value = false;
+                    });
+            }
+        }
+    });
+}
+
+/** 删除按钮操作 */
+function handleDelete(row) {
+    const _userIds = row.userId || ids.value;
+    proxy.$modal
+        .confirm('是否确认删除wx 端用户信息编号为"' + userIds + '"的数据项？')
+        .then(function () {
+            loading.value = true;
+            return delWxuser(_userIds);
+        })
+        .then(() => {
+            loading.value = true;
+            getList();
+            proxy.$modal.msgSuccess("删除成功");
+        })
+        .catch(() => {})
+        .finally(() => {
+            loading.value = false;
+        });
+}
+
+/** 导出按钮操作 */
+function handleExport() {
+    proxy.download(
+        "wx/wxuser/export",
+        {
+            ...queryParams.value,
         },
-        // 取消按钮
-        cancel() {
-            this.open = false;
-            this.reset();
-        },
-        // 表单重置
-        reset() {
-            this.form = {
-                userId: undefined,
-                openId: undefined,
-                nickName: undefined,
-                phonenumber: undefined,
-                avatar: undefined,
-                isInit: undefined,
-                createBy: undefined,
-                createTime: undefined,
-                updateBy: undefined,
-                updateTime: undefined,
-            };
-            this.resetForm("form");
-        },
-        /** 搜索按钮操作 */
-        handleQuery() {
-            this.queryParams.pageNum = 1;
-            this.getList();
-        },
-        /** 重置按钮操作 */
-        resetQuery() {
-            this.resetForm("queryForm");
-            this.handleQuery();
-        },
-        // 多选框选中数据
-        handleSelectionChange(selection) {
-            this.ids = selection.map((item) => item.userId);
-            this.single = selection.length !== 1;
-            this.multiple = !selection.length;
-        },
-        /** 新增按钮操作 */
-        handleAdd() {
-            this.reset();
-            this.open = true;
-            this.title = "添加wx 端用户信息";
-        },
-        /** 修改按钮操作 */
-        handleUpdate(row) {
-            this.loading = true;
-            this.reset();
-            const userId = row.userId || this.ids;
-            getWxuser(userId).then((response) => {
-                this.loading = false;
-                this.form = response.data;
-                this.open = true;
-                this.title = "修改wx 端用户信息";
-            });
-        },
-        /** 提交按钮 */
-        submitForm() {
-            this.$refs["form"].validate((valid) => {
-                if (valid) {
-                    this.buttonLoading = true;
-                    if (this.form.userId != null) {
-                        updateWxuser(this.form)
-                            .then((response) => {
-                                this.$modal.msgSuccess("修改成功");
-                                this.open = false;
-                                this.getList();
-                            })
-                            .finally(() => {
-                                this.buttonLoading = false;
-                            });
-                    } else {
-                        addWxuser(this.form)
-                            .then((response) => {
-                                this.$modal.msgSuccess("新增成功");
-                                this.open = false;
-                                this.getList();
-                            })
-                            .finally(() => {
-                                this.buttonLoading = false;
-                            });
-                    }
-                }
-            });
-        },
-        /** 删除按钮操作 */
-        handleDelete(row) {
-            const userIds = row.userId || this.ids;
-            this.$modal
-                .confirm(
-                    '是否确认删除wx 端用户信息编号为"' + userIds + '"的数据项？'
-                )
-                .then(() => {
-                    this.loading = true;
-                    return delWxuser(userIds);
-                })
-                .then(() => {
-                    this.loading = false;
-                    this.getList();
-                    this.$modal.msgSuccess("删除成功");
-                })
-                .catch(() => {})
-                .finally(() => {
-                    this.loading = false;
-                });
-        },
-        /** 导出按钮操作 */
-        handleExport() {
-            this.download(
-                "wx/wxuser/export",
-                {
-                    ...this.queryParams,
-                },
-                `wxuser_${new Date().getTime()}.xlsx`
-            );
-        },
-    },
-};
+        `wxuser_${new Date().getTime()}.xlsx`
+    );
+}
+
+getList();
 </script>
