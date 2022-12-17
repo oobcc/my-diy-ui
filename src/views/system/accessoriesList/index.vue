@@ -446,7 +446,8 @@
             </el-form>
             <template #footer>
                 <div class="dialog-footer">
-                    <el-butto                        :loading="buttonLoading"
+                    <el-button
+                        :loading="buttonLoading"
                         type="primary"
                         @click="submitForm"
                         >确 定</el-button

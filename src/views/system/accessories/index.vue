@@ -438,11 +438,12 @@ function getCategortTreeselect() {
         categoryOptions.value = categoryOptions.value[0].children;
     });
 }
-
+// 获取价格
 function getPrice() {
     getPriceButtonLoading.value = true;
     getAccessoriePrice(form.value.number)
         .then((response) => {
+            proxy.$modal.msgSuccess("获取成功");
             form.value.price = response.data;
         })
         .catch((e) => {})
