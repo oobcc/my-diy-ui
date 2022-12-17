@@ -5,7 +5,7 @@
             ref="queryRef"
             :inline="true"
             v-show="showSearch"
-            label-width="100px"
+            label-width="120px"
         >
             <el-form-item label="配件类别名" prop="name">
                 <el-input
@@ -63,20 +63,22 @@
             :data="categoryList"
             row-key="id"
             :default-expand-all="isExpandAll"
+            :expand-row-keys="ExpandRowKeys"
             :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
         >
-            <el-table-column label="父id" prop="parentId" />
+            <!-- <el-table-column label="父id" prop="parentId" /> -->
             <el-table-column label="配件类别名" align="center" prop="name" />
             <el-table-column
-                label="不兼容类别id"
+                label="不兼容类别"
                 align="center"
                 prop="incompatible"
             >
                 <template #default="scope">
                     <el-tag
                         class="ml-2"
-                        type="info"
+                        type="danger"
                         v-for="(item, i) in scope.row.incompatible"
+                        effect="light"
                     >
                         {{ categoryMap[item] }}
                     </el-tag>
@@ -89,6 +91,7 @@
             >
                 <template #default="scope">
                     <el-button
+                        v-if="scope.row.id > 10"
                         type="text"
                         icon="Edit"
                         @click="handleUpdate(scope.row)"
@@ -103,6 +106,7 @@
                         >新增</el-button
                     >
                     <el-button
+                        v-if="scope.row.id > 10"
                         type="text"
                         icon="Delete"
                         @click="handleDelete(scope.row)"
@@ -121,7 +125,11 @@
                 :rules="rules"
                 label-width="100px"
             >
-                <el-form-item label="父类别" prop="parentId">
+                <el-form-item
+                    label="父类别"
+                    prop="parentId"
+                    v-if="form.parentId > 10"
+                >
                     <el-tree-select
                         v-model="form.parentId"
                         :data="categoryOptions"
@@ -141,7 +149,11 @@
                         placeholder="请输入配件类别名"
                     />
                 </el-form-item>
-                <el-form-item label="不兼容类别id" prop="incompatible">
+                <el-form-item
+                    label="不兼容类别"
+                    v-if="form.parentId !== 0"
+                    prop="incompatible"
+                >
                     <el-tree-select
                         v-model="form.incompatible"
                         :data="categoryOptions"
@@ -153,6 +165,7 @@
                         value-key="id"
                         placeholder="不兼容类别"
                         multiple
+                        check-strictly
                         :render-after-expand="false"
                         show-checkbox
                     />
@@ -194,10 +207,12 @@ const buttonLoading = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
 const title = ref("");
-const isExpandAll = ref(true);
+const isExpandAll = ref(false);
 const refreshTable = ref(true);
 
 const categoryMap = ref({});
+
+const ExpandRowKeys = ref(["1"]);
 
 const data = reactive({
     form: {},

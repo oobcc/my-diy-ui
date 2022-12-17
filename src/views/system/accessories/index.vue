@@ -117,6 +117,7 @@
             <el-table-column label="配件名" align="center" prop="name" />
             <el-table-column label=" 配件编号" align="center" prop="number" />
             <el-table-column label="配件价格" align="center" prop="price" />
+            <el-table-column label="警告信息" align="center" prop="warning" />
             <el-table-column
                 label="操作"
                 align="center"
@@ -320,7 +321,7 @@ function reset() {
         number: null,
         price: null,
         delFlag: null,
-        categoryId: null,
+        categoryId: queryParams.value.parentId,
     };
     proxy.resetForm("accessoriesRef");
 }
